@@ -1,4 +1,10 @@
+use futures::channel::mpsc;
+use futures::StreamExt;
 use wasm_bindgen::prelude::*;
+use wasm_bindgen_futures::future_to_promise;
+use wasm_bindgen_futures::js_sys::Promise;
+use web_sys::{ErrorEvent, MessageEvent, WebSocket};
+
 macro_rules! console_log {
     ($($t:tt)*) => (log(&format_args!($($t)*).to_string()))
 }
@@ -8,6 +14,7 @@ extern "C" {
     #[wasm_bindgen(js_namespace = console)]
     fn log(s: &str);
 }
+
 #[wasm_bindgen]
 pub fn ws_ping(endpoint: String, message: String) -> Promise {
     let ws = match WebSocket::new(&endpoint) {
@@ -53,6 +60,13 @@ pub fn ws_ping(endpoint: String, message: String) -> Promise {
     ws.set_onmessage(Some(onmessage_callback.as_ref().unchecked_ref()));
     onmessage_callback.forget();
 
+    // On error, log it
+    let onerror_callback = Closure::wrap(Box::new(move |e: ErrorEvent| {
+        console_log!("error event: {:?}", e);
+    }) as Box<dyn FnMut(ErrorEvent)>);
+    ws.set_onerror(Some(onerror_callback.as_ref().unchecked_ref()));
+    onerror_callback.forget();
+
     // On receive message from channel, return it to JS
     future_to_promise(async move {
         match receiver.next().await {
@@ -60,3 +74,4 @@ pub fn ws_ping(endpoint: String, message: String) -> Promise {
             None => Err(JsValue::from_str("No response received")),
         }
     })
+}
