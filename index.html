@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8" />
+    <title>hello-wasm example</title>
+  </head>
+  <body>
+    <script type="module">
+      import init, { ws_ping } from "./pkg/wasm_ws.js";
+      init().then(() => {
+        const endpoint = "ws://localhost:8080";
+        const message = "Hello, WebSocket!";
+
+        ws_ping(endpoint, message)
+          .then((response) => console.log("Received: " + response))
+          .catch((error) => console.error("Error: " + error));
+      });
+    </script>
+  </body>
+</html>
