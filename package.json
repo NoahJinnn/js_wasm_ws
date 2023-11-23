@@ -1,0 +1,9 @@
+{
+  "scripts": {
+    "serve": "http-serve ./ -p 3000"
+  },
+  "devDependencies": {
+    "http-serve": "^1.0.1"
+  },
+  "types": "./pkg/wasm_ws.d.ts"
+}
